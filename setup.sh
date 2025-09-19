@@ -10,11 +10,11 @@ set -euo pipefail
 # 3) Run: bash setup.sh
 #
 # What you get:
-# - apps/dao-dapp : Vite + React 18 + RainbowKit + wagmi + TanStack Query + Tailwind v4
-# - packages/contracts : Hardhat v2.26.x + toolbox (stable with Node 20)
+# - apps/dao-dapp : Vite + React 18 + RainbowKit v2 + wagmi v2 + TanStack Query v5 + Tailwind v4
+# - packages/contracts : Hardhat v3 + @nomicfoundation/hardhat-toolbox-viem (Node 22 compatible)
 #
 # Required parameters (edit apps/dao-dapp/.env.local after script runs):
-# - VITE_WALLETCONNECT_ID: WalletConnect Cloud Project ID
+# - VITE_WALLETCONNECT_ID
 # - VITE_MAINNET_RPC / VITE_POLYGON_RPC / VITE_OPTIMISM_RPC / VITE_ARBITRUM_RPC / VITE_SEPOLIA_RPC
 #
 # Additional contract deployment parameters (edit packages/contracts/.env.hardhat.local):
@@ -24,21 +24,20 @@ set -euo pipefail
 #
 # Notes:
 # - HTTP transports only (no WebSockets) for reliability.
-# - This setup pins React to 18.x to satisfy web3 libs' peer ranges today.
-# - Uses Hardhat 2.26.x (widely supported). Use Node 20 LTS for best compatibility.
+# - Node 22 throughout; React pinned to 18.x to satisfy web3 peer ranges.
 # -----------------------------------------------------------------------------
 
 # --- Corepack & pnpm ----------------------------------------------------------------
 command -v corepack >/dev/null 2>&1 || {
-  echo "Corepack not found. Install Node.js >= 20 (Node 20 LTS recommended) and retry." >&2
+  echo "Corepack not found. Install Node.js >= 22 and retry." >&2
   exit 1
 }
 corepack enable
 export COREPACK_ENABLE_DOWNLOAD_PROMPT=0
 corepack prepare pnpm@10.16.1 --activate
 
-# Pin Node LTS for dev shells (HH2 plugins are happiest on Node 20)
-printf "v20\n" > .nvmrc
+# Pin Node LTS for dev shells (Hardhat 3 supports Node 22+)
+printf "v22\n" > .nvmrc
 
 # --- Root files ---------------------------------------------------------------------
 # .gitignore
@@ -55,13 +54,13 @@ apps/dao-dapp/src/contracts/*
 !apps/dao-dapp/src/contracts/.gitkeep
 EOF
 
-# package.json (root) — uses --dir/--filter to avoid the -C quirk inside scripts
+# package.json (root) — uses --dir/--filter (stable inside scripts)
 cat > package.json <<'EOF'
 {
   "name": "dapp_setup",
   "private": true,
   "packageManager": "pnpm@10.16.1",
-  "engines": { "node": ">=20 <21" },
+  "engines": { "node": ">=22 <23" },
   "scripts": {
     "web:dev": "pnpm --dir apps/dao-dapp dev",
     "web:build": "pnpm --dir apps/dao-dapp build",
@@ -205,7 +204,7 @@ EOF
 fi
 [ -f apps/dao-dapp/.env.local ] || cp apps/dao-dapp/.env.example apps/dao-dapp/.env.local
 
-# --- Contracts workspace (Hardhat 2.26.x + TS) --------------------------------------
+# --- Contracts workspace (Hardhat 3 + toolbox-viem + TS) ----------------------------
 mkdir -p packages/contracts
 
 # package.json (contracts)
@@ -222,15 +221,15 @@ cat > packages/contracts/package.json <<'EOF'
 }
 EOF
 
-# tsconfig (contracts) — CJS keeps HH2 happy
+# tsconfig (contracts) — NodeNext/ESM for HH3
 cat > packages/contracts/tsconfig.json <<'EOF'
 {
   "compilerOptions": {
-    "target": "es2020",
-    "module": "commonjs",
+    "target": "ES2022",
+    "module": "NodeNext",
     "strict": true,
     "esModuleInterop": true,
-    "moduleResolution": "node",
+    "moduleResolution": "NodeNext",
     "resolveJsonModule": true,
     "outDir": "dist",
     "types": ["node", "hardhat"]
@@ -240,13 +239,12 @@ cat > packages/contracts/tsconfig.json <<'EOF'
 }
 EOF
 
-# Hardhat config (HH2 + unified etherscan key; artifacts flow into the app)
+# Hardhat config (HH3 + toolbox-viem + unified verify; artifacts into app)
 cat > packages/contracts/hardhat.config.ts <<'EOF'
 import { resolve } from 'path'
 import { config as loadEnv } from 'dotenv'
-import { HardhatUserConfig } from 'hardhat/config'
-import { NetworkUserConfig } from 'hardhat/types'
-import '@nomicfoundation/hardhat-toolbox'
+import type { HardhatUserConfig, NetworkUserConfig } from 'hardhat/config'
+import hardhatToolboxViem from '@nomicfoundation/hardhat-toolbox-viem'
 
 loadEnv({ path: resolve(__dirname, '.env.hardhat.local') })
 
@@ -279,16 +277,15 @@ addNetwork('arbitrum', process.env.ARBITRUM_RPC)
 addNetwork('sepolia', process.env.SEPOLIA_RPC)
 
 const config: HardhatUserConfig = {
+  plugins: [hardhatToolboxViem],
   solidity: {
-    version: '0.8.24',
-    settings: {
-      optimizer: { enabled: true, runs: 200 }
-    }
+    version: '0.8.28',
+    settings: { optimizer: { enabled: true, runs: 200 } }
   },
   defaultNetwork: 'hardhat',
   networks,
-  etherscan: {
-    apiKey: process.env.ETHERSCAN_API_KEY || ''
+  verify: {
+    etherscan: { apiKey: process.env.ETHERSCAN_API_KEY || '' }
   },
   paths: {
     root: resolve(__dirname),
@@ -343,8 +340,8 @@ ETHERSCAN_API_KEY=
 EOF
 [ -f packages/contracts/.env.hardhat.local ] || cp packages/contracts/.env.hardhat.example packages/contracts/.env.hardhat.local
 
-# Dev deps for contracts (Hardhat 2.26.x + toolbox + TS)
-pnpm --dir packages/contracts add -D hardhat@~2.26.0 @nomicfoundation/hardhat-toolbox@~6.1.0 typescript@~5.4.5 ts-node@~10.9.2 @types/node@^20 dotenv@^16
+# Dev deps for contracts (Hardhat 3 + toolbox-viem + TS)
+pnpm --dir packages/contracts add -D hardhat@^3 @nomicfoundation/hardhat-toolbox-viem@^5.0.0 typescript@~5.9.2 ts-node@~10.9.2 @types/node@^22 dotenv@^16
 pnpm --dir packages/contracts install
 
 # Install workspace deps (root lockfile)
@@ -361,6 +358,7 @@ echo
 echo "Done. Next steps:"
 echo "1) Edit apps/dao-dapp/.env.local  (set VITE_WALLETCONNECT_ID and RPC URLs)"
 echo "2) Edit packages/contracts/.env.hardhat.local  (set deployer key, RPC URLs, explorer key)"
-echo "3) If you see 'Ignored build scripts' warnings, run once: pnpm approve-builds"
+echo "3) If you see 'Ignored build scripts' warnings, and you want native speedups, run:"
+echo "     pnpm approve-builds   # select: bufferutil, utf-8-validate, keccak, secp256k1"
 echo "4) Compile contracts: pnpm contracts:compile"
 echo "5) Start web app:     pnpm web:dev"

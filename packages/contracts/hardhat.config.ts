@@ -1,8 +1,7 @@
 import { resolve } from 'path'
 import { config as loadEnv } from 'dotenv'
-import { HardhatUserConfig } from 'hardhat/config'
-import { NetworkUserConfig } from 'hardhat/types'
-import '@nomicfoundation/hardhat-toolbox'
+import type { HardhatUserConfig, NetworkUserConfig } from 'hardhat/config'
+import hardhatToolboxViem from '@nomicfoundation/hardhat-toolbox-viem'
 
 loadEnv({ path: resolve(__dirname, '.env.hardhat.local') })
 
@@ -35,16 +34,15 @@ addNetwork('arbitrum', process.env.ARBITRUM_RPC)
 addNetwork('sepolia', process.env.SEPOLIA_RPC)
 
 const config: HardhatUserConfig = {
+  plugins: [hardhatToolboxViem],
   solidity: {
-    version: '0.8.24',
-    settings: {
-      optimizer: { enabled: true, runs: 200 }
-    }
+    version: '0.8.28',
+    settings: { optimizer: { enabled: true, runs: 200 } }
   },
   defaultNetwork: 'hardhat',
   networks,
-  etherscan: {
-    apiKey: process.env.ETHERSCAN_API_KEY || ''
+  verify: {
+    etherscan: { apiKey: process.env.ETHERSCAN_API_KEY || '' }
   },
   paths: {
     root: resolve(__dirname),

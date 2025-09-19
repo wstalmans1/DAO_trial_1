@@ -2,7 +2,7 @@
   "name": "dapp_setup",
   "private": true,
   "packageManager": "pnpm@10.16.1",
-  "engines": { "node": ">=20 <21" },
+  "engines": { "node": ">=22 <23" },
   "scripts": {
     "web:dev": "pnpm --dir apps/dao-dapp dev",
     "web:build": "pnpm --dir apps/dao-dapp build",
