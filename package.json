@@ -1,0 +1,15 @@
+{
+  "name": "dapp_setup",
+  "private": true,
+  "packageManager": "pnpm@10.16.1",
+  "engines": { "node": ">=22 <23" },
+  "scripts": {
+    "web:dev": "pnpm -C apps/dao-dapp dev",
+    "web:build": "pnpm -C apps/dao-dapp build",
+    "web:preview": "pnpm -C apps/dao-dapp preview",
+    "contracts:compile": "pnpm -C packages/contracts hardhat compile",
+    "contracts:test": "pnpm -C packages/contracts hardhat test",
+    "contracts:deploy": "pnpm -C packages/contracts hardhat run scripts/deploy.ts",
+    "contracts:verify": "pnpm -C packages/contracts hardhat verify"
+  }
+}

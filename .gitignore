@@ -1,0 +1,10 @@
+node_modules
+dist
+.env
+.env.*
+packages/contracts/cache
+packages/contracts/artifacts
+packages/contracts/typechain-types
+packages/contracts/.env.hardhat.local
+apps/dao-dapp/src/contracts/*
+!apps/dao-dapp/src/contracts/.gitkeep
