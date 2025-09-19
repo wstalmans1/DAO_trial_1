@@ -1,6 +1,7 @@
 {
   "name": "contracts",
   "private": true,
+  "type": "module",
   "scripts": {
     "clean": "hardhat clean",
     "compile": "hardhat compile",

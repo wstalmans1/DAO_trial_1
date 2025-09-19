@@ -1,7 +1,7 @@
 import { resolve } from 'path'
 import { config as loadEnv } from 'dotenv'
 import type { HardhatUserConfig, NetworkUserConfig } from 'hardhat/config'
-import hardhatToolboxViem from '@nomicfoundation/hardhat-toolbox-viem'
+import '@nomicfoundation/hardhat-toolbox-viem'
 
 loadEnv({ path: resolve(__dirname, '.env.hardhat.local') })
 
@@ -14,17 +14,12 @@ const accounts = (() => {
   return undefined
 })()
 
-const networks: Record<string, NetworkUserConfig> = {
-  hardhat: {}
-}
+const networks: Record<string, NetworkUserConfig> = { hardhat: {} }
 
 const addNetwork = (name: string, rpcUrl?: string) => {
   const url = rpcUrl?.trim()
   if (!url) return
-  networks[name] = {
-    url,
-    ...(accounts ? { accounts } : {})
-  }
+  networks[name] = { url, ...(accounts ? { accounts } : {}) }
 }
 
 addNetwork('mainnet', process.env.MAINNET_RPC)
@@ -34,16 +29,10 @@ addNetwork('arbitrum', process.env.ARBITRUM_RPC)
 addNetwork('sepolia', process.env.SEPOLIA_RPC)
 
 const config: HardhatUserConfig = {
-  plugins: [hardhatToolboxViem],
-  solidity: {
-    version: '0.8.28',
-    settings: { optimizer: { enabled: true, runs: 200 } }
-  },
+  solidity: { version: '0.8.28', settings: { optimizer: { enabled: true, runs: 200 } } },
   defaultNetwork: 'hardhat',
   networks,
-  verify: {
-    etherscan: { apiKey: process.env.ETHERSCAN_API_KEY || '' }
-  },
+  verify: { etherscan: { apiKey: process.env.ETHERSCAN_API_KEY || '' } },
   paths: {
     root: resolve(__dirname),
     sources: resolve(__dirname, 'contracts'),
