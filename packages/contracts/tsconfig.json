@@ -1,11 +1,10 @@
 {
-  "extends": "@tsconfig/node22/tsconfig.json",
   "compilerOptions": {
-    "target": "ES2022",
-    "module": "NodeNext",
+    "target": "es2020",
+    "module": "commonjs",
     "strict": true,
     "esModuleInterop": true,
-    "moduleResolution": "NodeNext",
+    "moduleResolution": "node",
     "resolveJsonModule": true,
     "outDir": "dist",
     "types": ["node", "hardhat"]

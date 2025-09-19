@@ -5,50 +5,40 @@ set -euo pipefail
 # Bootstrap script to recreate a DApp-setup workspace in the CURRENT folder.
 #
 # How to use (from an EMPTY folder where you want to create the project):
-# 1) Save this file as DApp-setup.sh in that empty folder.
-# 2) Open a terminal and cd into that folder.
-# 3) Run one of the following:
-#      bash DApp-setup.sh
-#    OR
-#      chmod +x DApp-setup.sh && ./DApp-setup.sh
-# 4) After it finishes (no new subfolder is created):
-#      pnpm contracts:compile
-#      pnpm web:dev
+# 1) Save this file as setup.sh in that empty folder.
+# 2) In Terminal: cd into that folder.
+# 3) Run: bash setup.sh
+#
+# What you get:
+# - apps/dao-dapp : Vite + React 18 + RainbowKit + wagmi + TanStack Query + Tailwind v4
+# - packages/contracts : Hardhat v2.26.x + toolbox (stable with Node 20)
 #
 # Required parameters (edit apps/dao-dapp/.env.local after script runs):
-# - VITE_WALLETCONNECT_ID: Your WalletConnect Cloud Project ID
-# - VITE_MAINNET_RPC: HTTPS RPC URL for Ethereum mainnet (no websockets)
-# - VITE_POLYGON_RPC: HTTPS RPC URL for Polygon
-# - VITE_OPTIMISM_RPC: HTTPS RPC URL for Optimism
-# - VITE_ARBITRUM_RPC: HTTPS RPC URL for Arbitrum
-# - VITE_SEPOLIA_RPC: HTTPS RPC URL for Sepolia testnet
+# - VITE_WALLETCONNECT_ID: WalletConnect Cloud Project ID
+# - VITE_MAINNET_RPC / VITE_POLYGON_RPC / VITE_OPTIMISM_RPC / VITE_ARBITRUM_RPC / VITE_SEPOLIA_RPC
 #
 # Additional contract deployment parameters (edit packages/contracts/.env.hardhat.local):
-# - PRIVATE_KEY or MNEMONIC: Credentials for contract deployment
+# - PRIVATE_KEY or MNEMONIC
 # - MAINNET_RPC / POLYGON_RPC / OPTIMISM_RPC / ARBITRUM_RPC / SEPOLIA_RPC
-# - ETHERSCAN_API_KEY (or per-explorer keys via verify config)
+# - ETHERSCAN_API_KEY (optional for verification)
 #
 # Notes:
-# - Only HTTP endpoints are configured (no WebSockets) to avoid WS errors.
-# - You can replace public endpoints with Infura/Alchemy/QuickNode URLs for reliability.
-#
-# Prerequisites:
-# - Node.js 22 LTS recommended
-# - Corepack available (the script checks and enables it)
-# - Internet access
+# - HTTP transports only (no WebSockets) for reliability.
+# - This setup pins React to 18.x to satisfy web3 libs' peer ranges today.
+# - Uses Hardhat 2.26.x (widely supported). Use Node 20 LTS for best compatibility.
 # -----------------------------------------------------------------------------
 
 # --- Corepack & pnpm ----------------------------------------------------------------
 command -v corepack >/dev/null 2>&1 || {
-  echo "Corepack not found. Please install Node.js >= 22 (22 LTS recommended) and retry." >&2
+  echo "Corepack not found. Install Node.js >= 20 (Node 20 LTS recommended) and retry." >&2
   exit 1
 }
 corepack enable
 export COREPACK_ENABLE_DOWNLOAD_PROMPT=0
 corepack prepare pnpm@10.16.1 --activate
 
-# Pin Node LTS for dev shells
-printf "v22\n" > .nvmrc
+# Pin Node LTS for dev shells (HH2 plugins are happiest on Node 20)
+printf "v20\n" > .nvmrc
 
 # --- Root files ---------------------------------------------------------------------
 # .gitignore
@@ -65,21 +55,22 @@ apps/dao-dapp/src/contracts/*
 !apps/dao-dapp/src/contracts/.gitkeep
 EOF
 
-# package.json (root)
+# package.json (root) — uses --dir/--filter to avoid the -C quirk inside scripts
 cat > package.json <<'EOF'
 {
   "name": "dapp_setup",
   "private": true,
   "packageManager": "pnpm@10.16.1",
-  "engines": { "node": ">=22 <23" },
+  "engines": { "node": ">=20 <21" },
   "scripts": {
-    "web:dev": "pnpm -C apps/dao-dapp dev",
-    "web:build": "pnpm -C apps/dao-dapp build",
-    "web:preview": "pnpm -C apps/dao-dapp preview",
-    "contracts:compile": "pnpm -C packages/contracts hardhat compile",
-    "contracts:test": "pnpm -C packages/contracts hardhat test",
-    "contracts:deploy": "pnpm -C packages/contracts hardhat run scripts/deploy.ts",
-    "contracts:verify": "pnpm -C packages/contracts hardhat verify"
+    "web:dev": "pnpm --dir apps/dao-dapp dev",
+    "web:build": "pnpm --dir apps/dao-dapp build",
+    "web:preview": "pnpm --dir apps/dao-dapp preview",
+
+    "contracts:compile": "pnpm --filter contracts run compile",
+    "contracts:test": "pnpm --filter contracts run test",
+    "contracts:deploy": "pnpm --filter contracts run deploy",
+    "contracts:verify": "pnpm --filter contracts exec hardhat verify"
   }
 }
 EOF
@@ -99,14 +90,18 @@ else
   # Pin Vite major to reduce template churn
   pnpm create vite@6 apps/dao-dapp -- --template react-ts --no-git --package-manager pnpm
 fi
-pnpm -C apps/dao-dapp install
+pnpm --dir apps/dao-dapp install
+
+# Force React 18 to satisfy peer ranges of wagmi / RainbowKit / WalletConnect
+pnpm --dir apps/dao-dapp add react@18.3.1 react-dom@18.3.1
+pnpm --dir apps/dao-dapp add -D @types/react@18.3.12 @types/react-dom@18.3.1
 
 # --- App deps (web3 + styling) ------------------------------------------------------
 # Pin compatible versions (wagmi v2 + RainbowKit v2 + viem v2 + TanStack Query v5)
-pnpm -C apps/dao-dapp add @rainbow-me/rainbowkit@~2.2.8 wagmi@~2.16.9 viem@~2.37.6 @tanstack/react-query@~5.89.0
+pnpm --dir apps/dao-dapp add @rainbow-me/rainbowkit@~2.2.8 wagmi@~2.16.9 viem@~2.37.6 @tanstack/react-query@~5.89.0
 
 # Tailwind v4 (PostCSS plugin)
-pnpm -C apps/dao-dapp add -D tailwindcss@~4.0.0 @tailwindcss/postcss@~4.0.0 postcss@~8.4.47
+pnpm --dir apps/dao-dapp add -D tailwindcss@~4.0.0 @tailwindcss/postcss@~4.0.0 postcss@~8.4.47
 
 # postcss.config (use ESM; v4 plugin)
 if [ ! -f apps/dao-dapp/postcss.config.mjs ]; then
@@ -210,7 +205,7 @@ EOF
 fi
 [ -f apps/dao-dapp/.env.local ] || cp apps/dao-dapp/.env.example apps/dao-dapp/.env.local
 
-# --- Contracts workspace (Hardhat 3 + TS) -------------------------------------------
+# --- Contracts workspace (Hardhat 2.26.x + TS) --------------------------------------
 mkdir -p packages/contracts
 
 # package.json (contracts)
@@ -227,16 +222,15 @@ cat > packages/contracts/package.json <<'EOF'
 }
 EOF
 
-# tsconfig (contracts)
+# tsconfig (contracts) — CJS keeps HH2 happy
 cat > packages/contracts/tsconfig.json <<'EOF'
 {
-  "extends": "@tsconfig/node22/tsconfig.json",
   "compilerOptions": {
-    "target": "ES2022",
-    "module": "NodeNext",
+    "target": "es2020",
+    "module": "commonjs",
     "strict": true,
     "esModuleInterop": true,
-    "moduleResolution": "NodeNext",
+    "moduleResolution": "node",
     "resolveJsonModule": true,
     "outDir": "dist",
     "types": ["node", "hardhat"]
@@ -246,11 +240,12 @@ cat > packages/contracts/tsconfig.json <<'EOF'
 }
 EOF
 
-# Hardhat config (v3-style verify config + HTTP networks)
+# Hardhat config (HH2 + unified etherscan key; artifacts flow into the app)
 cat > packages/contracts/hardhat.config.ts <<'EOF'
 import { resolve } from 'path'
 import { config as loadEnv } from 'dotenv'
-import type { HardhatUserConfig } from 'hardhat/config'
+import { HardhatUserConfig } from 'hardhat/config'
+import { NetworkUserConfig } from 'hardhat/types'
 import '@nomicfoundation/hardhat-toolbox'
 
 loadEnv({ path: resolve(__dirname, '.env.hardhat.local') })
@@ -264,7 +259,7 @@ const accounts = (() => {
   return undefined
 })()
 
-const networks: Record<string, any> = {
+const networks: Record<string, NetworkUserConfig> = {
   hardhat: {}
 }
 
@@ -285,19 +280,15 @@ addNetwork('sepolia', process.env.SEPOLIA_RPC)
 
 const config: HardhatUserConfig = {
   solidity: {
-    version: '0.8.28',
+    version: '0.8.24',
     settings: {
       optimizer: { enabled: true, runs: 200 }
     }
   },
   defaultNetwork: 'hardhat',
   networks,
-  verify: {
-    // Single Etherscan-family key works for Etherscan; for others (Polygonscan, Arbiscan),
-    // you can also pass per-network keys here if needed.
-    etherscan: {
-      apiKey: process.env.ETHERSCAN_API_KEY || ''
-    }
+  etherscan: {
+    apiKey: process.env.ETHERSCAN_API_KEY || ''
   },
   paths: {
     root: resolve(__dirname),
@@ -347,14 +338,14 @@ OPTIMISM_RPC=
 ARBITRUM_RPC=
 SEPOLIA_RPC=
 
-# Block explorer API keys (Etherscan family; a single Etherscan key may work for Etherscan networks)
+# Block explorer API key (Etherscan family)
 ETHERSCAN_API_KEY=
 EOF
 [ -f packages/contracts/.env.hardhat.local ] || cp packages/contracts/.env.hardhat.example packages/contracts/.env.hardhat.local
 
-# Dev deps for contracts (Hardhat 3 + toolbox + TS)
-pnpm -C packages/contracts add -D hardhat@^3 @nomicfoundation/hardhat-toolbox@^6.1.0 typescript@~5.9.2 ts-node@~10.9.2 @types/node@^22 dotenv@^16 @tsconfig/node22@^22.0.2
-pnpm -C packages/contracts install
+# Dev deps for contracts (Hardhat 2.26.x + toolbox + TS)
+pnpm --dir packages/contracts add -D hardhat@~2.26.0 @nomicfoundation/hardhat-toolbox@~6.1.0 typescript@~5.4.5 ts-node@~10.9.2 @types/node@^20 dotenv@^16
+pnpm --dir packages/contracts install
 
 # Install workspace deps (root lockfile)
 pnpm install
@@ -368,7 +359,8 @@ fi
 
 echo
 echo "Done. Next steps:"
-echo "1) Edit apps/dao-dapp/.env.local (set VITE_WALLETCONNECT_ID and RPC URLs)"
-echo "2) Edit packages/contracts/.env.hardhat.local (set deployer key, RPC URLs, explorer key)"
-echo "3) pnpm contracts:compile"
-echo "4) pnpm web:dev"
+echo "1) Edit apps/dao-dapp/.env.local  (set VITE_WALLETCONNECT_ID and RPC URLs)"
+echo "2) Edit packages/contracts/.env.hardhat.local  (set deployer key, RPC URLs, explorer key)"
+echo "3) If you see 'Ignored build scripts' warnings, run once: pnpm approve-builds"
+echo "4) Compile contracts: pnpm contracts:compile"
+echo "5) Start web app:     pnpm web:dev"
