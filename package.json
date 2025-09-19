@@ -7,6 +7,7 @@
     "web:dev": "pnpm --dir apps/dao-dapp dev",
     "web:build": "pnpm --dir apps/dao-dapp build",
     "web:preview": "pnpm --dir apps/dao-dapp preview",
+
     "contracts:compile": "pnpm --filter contracts run compile",
     "contracts:test": "pnpm --filter contracts run test",
     "contracts:deploy": "pnpm --filter contracts run deploy",

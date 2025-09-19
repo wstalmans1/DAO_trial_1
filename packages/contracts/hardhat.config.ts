@@ -1,25 +1,24 @@
-import { resolve } from 'path'
+import { fileURLToPath } from 'node:url'
+import { dirname, resolve } from 'node:path'
 import { config as loadEnv } from 'dotenv'
 import type { HardhatUserConfig, NetworkUserConfig } from 'hardhat/config'
 import '@nomicfoundation/hardhat-toolbox-viem'
+
+// ESM-safe __dirname
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = dirname(__filename)
 
 loadEnv({ path: resolve(__dirname, '.env.hardhat.local') })
 
 const privateKey = process.env.PRIVATE_KEY?.trim()
 const mnemonic = process.env.MNEMONIC?.trim()
-
-const accounts = (() => {
-  if (privateKey) return [privateKey]
-  if (mnemonic) return { mnemonic }
-  return undefined
-})()
+const accounts = privateKey ? [privateKey] : mnemonic ? { mnemonic } : undefined
 
 const networks: Record<string, NetworkUserConfig> = { hardhat: {} }
-
-const addNetwork = (name: string, rpcUrl?: string) => {
-  const url = rpcUrl?.trim()
-  if (!url) return
-  networks[name] = { url, ...(accounts ? { accounts } : {}) }
+const addNetwork = (name: string, url?: string) => {
+  const u = url?.trim()
+  if (!u) return
+  networks[name] = { url: u, ...(accounts ? { accounts } : {}) }
 }
 
 addNetwork('mainnet', process.env.MAINNET_RPC)

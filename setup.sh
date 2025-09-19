@@ -2,9 +2,9 @@
 set -euo pipefail
 
 # -----------------------------------------------------------------------------
-# setup.sh — Node 22 + React 18 + wagmi/RainbowKit + Tailwind v4 + Hardhat 3 (ESM)
+# setup.sh — Node 22 + React 18 + wagmi/RainbowKit + Tailwind v4 + Hardhat 3 (ESM-safe)
 #
-# Usage (from an EMPTY folder):
+# Usage (from an EMPTY folder, or rerun safely to repair an existing setup):
 #   bash setup.sh
 #
 # What you get:
@@ -56,6 +56,7 @@ cat > package.json <<'EOF'
     "web:dev": "pnpm --dir apps/dao-dapp dev",
     "web:build": "pnpm --dir apps/dao-dapp build",
     "web:preview": "pnpm --dir apps/dao-dapp preview",
+
     "contracts:compile": "pnpm --filter contracts run compile",
     "contracts:test": "pnpm --filter contracts run test",
     "contracts:deploy": "pnpm --filter contracts run deploy",
@@ -73,12 +74,12 @@ EOF
 # --- App scaffold (Vite + React + TS) ----------------------------------------------
 mkdir -p apps
 if [ -d "apps/dao-dapp" ]; then
-  echo "apps/dao-dapp already exists; skipping Vite scaffold."
+  echo "apps/dao-dapp already exists; keeping it and ensuring deps/configs are correct."
 else
   pnpm create vite@6 apps/dao-dapp -- --template react-ts --no-git --package-manager pnpm
 fi
 
-# Force React 18 (web3 peers are on <=18)
+# Force React 18 (web3 peers target <=18)
 pnpm --dir apps/dao-dapp add react@18.3.1 react-dom@18.3.1
 pnpm --dir apps/dao-dapp add -D @types/react@18.3.12 @types/react-dom@18.3.1
 
@@ -89,11 +90,9 @@ pnpm --dir apps/dao-dapp add @rainbow-me/rainbowkit@~2.2.8 wagmi@~2.16.9 viem@~2
 pnpm --dir apps/dao-dapp add -D tailwindcss@~4.0.0 @tailwindcss/postcss@~4.0.0 postcss@~8.4.47
 
 # postcss.config (ESM)
-if [ ! -f apps/dao-dapp/postcss.config.mjs ]; then
-  cat > apps/dao-dapp/postcss.config.mjs <<'EOF'
+cat > apps/dao-dapp/postcss.config.mjs <<'EOF'
 export default { plugins: { '@tailwindcss/postcss': {} } }
 EOF
-fi
 
 # Tailwind entry
 mkdir -p apps/dao-dapp/src
@@ -103,14 +102,13 @@ EOF
 
 # Contracts artifacts bucket (consumed by the app)
 mkdir -p apps/dao-dapp/src/contracts
-[ -f apps/dao-dapp/src/contracts/.gitkeep ] || cat > apps/dao-dapp/src/contracts/.gitkeep <<'EOF'
+cat > apps/dao-dapp/src/contracts/.gitkeep <<'EOF'
 # Generated contract artifacts are ignored by git but kept for tooling.
 EOF
 
 # Wagmi/RainbowKit config (HTTP only)
 mkdir -p apps/dao-dapp/src/config
-if [ ! -f apps/dao-dapp/src/config/wagmi.ts ]; then
-  cat > apps/dao-dapp/src/config/wagmi.ts <<'EOF'
+cat > apps/dao-dapp/src/config/wagmi.ts <<'EOF'
 import { getDefaultConfig } from '@rainbow-me/rainbowkit'
 import { mainnet, polygon, optimism, arbitrum, sepolia } from 'wagmi/chains'
 import { http } from 'wagmi'
@@ -129,9 +127,8 @@ export const config = getDefaultConfig({
   ssr: false
 })
 EOF
-fi
 
-# main.tsx providers
+# main.tsx providers (overwrite to ensure stable setup)
 cat > apps/dao-dapp/src/main.tsx <<'EOF'
 import React from 'react'
 import ReactDOM from 'react-dom/client'
@@ -159,7 +156,7 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
 )
 EOF
 
-# Minimal App
+# Minimal App (overwrite harmlessly)
 cat > apps/dao-dapp/src/App.tsx <<'EOF'
 import { ConnectButton } from '@rainbow-me/rainbowkit'
 
@@ -175,9 +172,8 @@ export default function App() {
 }
 EOF
 
-# Env example
-if [ ! -f apps/dao-dapp/.env.example ]; then
-  cat > apps/dao-dapp/.env.example <<'EOF'
+# Env example + local
+cat > apps/dao-dapp/.env.example <<'EOF'
 VITE_WALLETCONNECT_ID=
 VITE_MAINNET_RPC=https://cloudflare-eth.com
 VITE_POLYGON_RPC=https://polygon-rpc.com
@@ -185,8 +181,10 @@ VITE_OPTIMISM_RPC=https://optimism.publicnode.com
 VITE_ARBITRUM_RPC=https://arbitrum.publicnode.com
 VITE_SEPOLIA_RPC=https://rpc.sepolia.org
 EOF
-fi
-[ -f apps/dao-dapp/.env.local ] || cp apps/dao-dapp/.env.example apps/dao-dapp/.env.local
+cp -f apps/dao-dapp/.env.example apps/dao-dapp/.env.local
+
+# Ensure app node_modules present
+pnpm --dir apps/dao-dapp install
 
 # --- Contracts workspace (Hardhat 3 + toolbox-viem + TS, ESM) -----------------------
 mkdir -p packages/contracts
@@ -224,30 +222,29 @@ cat > packages/contracts/tsconfig.json <<'EOF'
 }
 EOF
 
-# hardhat.config.ts — side-effect import for toolbox-viem; ESM friendly; verify config
+# hardhat.config.ts — ESM-safe __dirname + toolbox-viem + unified verify
 cat > packages/contracts/hardhat.config.ts <<'EOF'
-import { resolve } from 'path'
+import { fileURLToPath } from 'node:url'
+import { dirname, resolve } from 'node:path'
 import { config as loadEnv } from 'dotenv'
 import type { HardhatUserConfig, NetworkUserConfig } from 'hardhat/config'
 import '@nomicfoundation/hardhat-toolbox-viem'
+
+// ESM-safe __dirname
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = dirname(__filename)
 
 loadEnv({ path: resolve(__dirname, '.env.hardhat.local') })
 
 const privateKey = process.env.PRIVATE_KEY?.trim()
 const mnemonic = process.env.MNEMONIC?.trim()
-
-const accounts = (() => {
-  if (privateKey) return [privateKey]
-  if (mnemonic) return { mnemonic }
-  return undefined
-})()
+const accounts = privateKey ? [privateKey] : mnemonic ? { mnemonic } : undefined
 
 const networks: Record<string, NetworkUserConfig> = { hardhat: {} }
-
-const addNetwork = (name: string, rpcUrl?: string) => {
-  const url = rpcUrl?.trim()
-  if (!url) return
-  networks[name] = { url, ...(accounts ? { accounts } : {}) }
+const addNetwork = (name: string, url?: string) => {
+  const u = url?.trim()
+  if (!u) return
+  networks[name] = { url: u, ...(accounts ? { accounts } : {}) }
 }
 
 addNetwork('mainnet', process.env.MAINNET_RPC)
@@ -275,7 +272,7 @@ EOF
 
 # Contracts dirs and placeholders
 mkdir -p packages/contracts/contracts
-[ -f packages/contracts/contracts/.gitkeep ] || cat > packages/contracts/contracts/.gitkeep <<'EOF'
+cat > packages/contracts/contracts/.gitkeep <<'EOF'
 # Add your Solidity contracts here.
 EOF
 
@@ -292,7 +289,7 @@ main().catch((error) => {
 EOF
 
 mkdir -p packages/contracts/test
-[ -f packages/contracts/test/.gitkeep ] || cat > packages/contracts/test/.gitkeep <<'EOF'
+cat > packages/contracts/test/.gitkeep <<'EOF'
 # Add your Hardhat tests here.
 EOF
 
@@ -312,7 +309,7 @@ SEPOLIA_RPC=
 # Block explorer API key (Etherscan family)
 ETHERSCAN_API_KEY=
 EOF
-[ -f packages/contracts/.env.hardhat.local ] || cp packages/contracts/.env.hardhat.example packages/contracts/.env.hardhat.local
+cp -f packages/contracts/.env.hardhat.example packages/contracts/.env.hardhat.local
 
 # Dev deps for contracts (HH3 + toolbox-viem + TS)
 pnpm --dir packages/contracts add -D hardhat@^3 @nomicfoundation/hardhat-toolbox-viem@^5.0.0 typescript@~5.9.2 ts-node@~10.9.2 @types/node@^22 dotenv@^16
