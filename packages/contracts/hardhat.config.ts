@@ -1,7 +1,7 @@
 import { fileURLToPath } from 'node:url'
 import { dirname, resolve } from 'node:path'
 import { config as loadEnv } from 'dotenv'
-import type { HardhatUserConfig, NetworkUserConfig } from 'hardhat/config'
+import type { HardhatUserConfig } from 'hardhat/config'
 import '@nomicfoundation/hardhat-toolbox-viem'
 
 // ESM-safe __dirname
@@ -14,18 +14,22 @@ const privateKey = process.env.PRIVATE_KEY?.trim()
 const mnemonic = process.env.MNEMONIC?.trim()
 const accounts = privateKey ? [privateKey] : mnemonic ? { mnemonic } : undefined
 
-const networks: Record<string, NetworkUserConfig> = { hardhat: {} }
-const addNetwork = (name: string, url?: string) => {
-  const u = url?.trim()
-  if (!u) return
-  networks[name] = { url: u, ...(accounts ? { accounts } : {}) }
+// Hardhat v3 requires a "type" discriminator on each network
+const networks: any = {
+  hardhat: { type: 'edr-simulated' }
 }
 
-addNetwork('mainnet', process.env.MAINNET_RPC)
-addNetwork('polygon', process.env.POLYGON_RPC)
-addNetwork('optimism', process.env.OPTIMISM_RPC)
-addNetwork('arbitrum', process.env.ARBITRUM_RPC)
-addNetwork('sepolia', process.env.SEPOLIA_RPC)
+const addHttp = (name: string, url?: string) => {
+  const u = url?.trim()
+  if (!u) return
+  networks[name] = { type: 'http', url: u, ...(accounts ? { accounts } : {}) }
+}
+
+addHttp('mainnet', process.env.MAINNET_RPC)
+addHttp('polygon', process.env.POLYGON_RPC)
+addHttp('optimism', process.env.OPTIMISM_RPC)
+addHttp('arbitrum', process.env.ARBITRUM_RPC)
+addHttp('sepolia', process.env.SEPOLIA_RPC)
 
 const config: HardhatUserConfig = {
   solidity: { version: '0.8.28', settings: { optimizer: { enabled: true, runs: 200 } } },

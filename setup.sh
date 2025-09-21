@@ -2,14 +2,14 @@
 set -euo pipefail
 
 # -----------------------------------------------------------------------------
-# setup.sh — Node 22 + React 18 + wagmi/RainbowKit + Tailwind v4 + Hardhat 3 (ESM-safe)
+# setup.sh — Node 22 + React 18 + wagmi/RainbowKit + Tailwind v4 + Hardhat 3 (ESM, HH3 network shape)
 #
 # Usage (from an EMPTY folder, or rerun safely to repair an existing setup):
 #   bash setup.sh
 #
 # What you get:
 # - apps/dao-dapp : Vite + React 18 + RainbowKit v2 + wagmi v2 + TanStack Query v5 + Tailwind v4
-# - packages/contracts : Hardhat v3 (ESM) + @nomicfoundation/hardhat-toolbox-viem
+# - packages/contracts : Hardhat v3 (ESM) + @nomicfoundation/hardhat-toolbox-viem (HH3 network config)
 #
 # After it finishes:
 #   1) Edit apps/dao-dapp/.env.local  (VITE_WALLETCONNECT_ID + RPCs)
@@ -186,7 +186,7 @@ cp -f apps/dao-dapp/.env.example apps/dao-dapp/.env.local
 # Ensure app node_modules present
 pnpm --dir apps/dao-dapp install
 
-# --- Contracts workspace (Hardhat 3 + toolbox-viem + TS, ESM) -----------------------
+# --- Contracts workspace (Hardhat 3 + toolbox-viem + TS, ESM, HH3 networks) --------
 mkdir -p packages/contracts
 
 # contracts/package.json — ESM required by Hardhat 3
@@ -222,12 +222,12 @@ cat > packages/contracts/tsconfig.json <<'EOF'
 }
 EOF
 
-# hardhat.config.ts — ESM-safe __dirname + toolbox-viem + unified verify
+# hardhat.config.ts — ESM-safe __dirname + toolbox-viem + unified verify + HH3 network "type"
 cat > packages/contracts/hardhat.config.ts <<'EOF'
 import { fileURLToPath } from 'node:url'
 import { dirname, resolve } from 'node:path'
 import { config as loadEnv } from 'dotenv'
-import type { HardhatUserConfig, NetworkUserConfig } from 'hardhat/config'
+import type { HardhatUserConfig } from 'hardhat/config'
 import '@nomicfoundation/hardhat-toolbox-viem'
 
 // ESM-safe __dirname
@@ -240,18 +240,22 @@ const privateKey = process.env.PRIVATE_KEY?.trim()
 const mnemonic = process.env.MNEMONIC?.trim()
 const accounts = privateKey ? [privateKey] : mnemonic ? { mnemonic } : undefined
 
-const networks: Record<string, NetworkUserConfig> = { hardhat: {} }
-const addNetwork = (name: string, url?: string) => {
-  const u = url?.trim()
-  if (!u) return
-  networks[name] = { url: u, ...(accounts ? { accounts } : {}) }
+// Hardhat v3 requires a "type" discriminator on each network
+const networks: any = {
+  hardhat: { type: 'edr-simulated' }
 }
 
-addNetwork('mainnet', process.env.MAINNET_RPC)
-addNetwork('polygon', process.env.POLYGON_RPC)
-addNetwork('optimism', process.env.OPTIMISM_RPC)
-addNetwork('arbitrum', process.env.ARBITRUM_RPC)
-addNetwork('sepolia', process.env.SEPOLIA_RPC)
+const addHttp = (name: string, url?: string) => {
+  const u = url?.trim()
+  if (!u) return
+  networks[name] = { type: 'http', url: u, ...(accounts ? { accounts } : {}) }
+}
+
+addHttp('mainnet', process.env.MAINNET_RPC)
+addHttp('polygon', process.env.POLYGON_RPC)
+addHttp('optimism', process.env.OPTIMISM_RPC)
+addHttp('arbitrum', process.env.ARBITRUM_RPC)
+addHttp('sepolia', process.env.SEPOLIA_RPC)
 
 const config: HardhatUserConfig = {
   solidity: { version: '0.8.28', settings: { optimizer: { enabled: true, runs: 200 } } },
