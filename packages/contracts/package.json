@@ -15,5 +15,8 @@
     "hardhat": "^3.0.6",
     "ts-node": "~10.9.2",
     "typescript": "~5.9.2"
+  },
+  "dependencies": {
+    "@openzeppelin/contracts": "^5.4.0"
   }
 }
