@@ -32,7 +32,13 @@ addHttp('arbitrum', process.env.ARBITRUM_RPC)
 addHttp('sepolia', process.env.SEPOLIA_RPC)
 
 const config: HardhatUserConfig = {
-  solidity: { version: '0.8.28', settings: { optimizer: { enabled: true, runs: 200 } } },
+  solidity: {
+    version: '0.8.28',
+    settings: {
+      optimizer: { enabled: true, runs: 200 },
+      viaIR: true
+    }
+  },
   defaultNetwork: 'hardhat',
   networks,
   verify: { etherscan: { apiKey: process.env.ETHERSCAN_API_KEY || '' } },

@@ -1,1 +1,172 @@
 @import "tailwindcss";
+
+/* Dark theme base styles */
+body {
+  background-color: #111827; /* gray-900 */
+  color: #ffffff;
+  margin: 0;
+  padding: 0;
+}
+
+#root {
+  min-height: 100vh;
+  background-color: #111827; /* gray-900 */
+}
+
+/* Custom scrollbar for dark theme */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #374151; /* gray-700 */
+}
+
+::-webkit-scrollbar-thumb {
+  background: #6b7280; /* gray-500 */
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #9ca3af; /* gray-400 */
+}
+
+/* RainbowKit Dark Theme Customizations - More Specific Selectors */
+[data-rk] {
+  --rk-fonts-body: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+/* Override RainbowKit styles with higher specificity */
+[data-rk] button[data-rk] {
+  background: linear-gradient(135deg, #1f2937 0%, #374151 100%) !important;
+  border: none !important;
+  color: #ffffff !important;
+  font-weight: 500 !important;
+  transition: all 0.2s ease !important;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3) !important;
+}
+
+[data-rk] button[data-rk]:hover {
+  background: linear-gradient(135deg, #374151 0%, #4b5563 100%) !important;
+  transform: translateY(-1px) !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3) !important;
+}
+
+[data-rk] button[data-rk]:active {
+  transform: translateY(0) !important;
+}
+
+/* Modal backdrop and content styling - Higher specificity */
+[data-rk] [data-rk-modal] {
+  background: rgba(0, 0, 0, 0.9) !important;
+  backdrop-filter: blur(12px) !important;
+}
+
+[data-rk] [data-rk-modal-content] {
+  background: linear-gradient(145deg, #1f2937 0%, #111827 100%) !important;
+  border: 1px solid #374151 !important;
+  border-radius: 16px !important;
+  box-shadow: 
+    0 25px 50px -12px rgba(0, 0, 0, 0.7),
+    0 0 0 1px rgba(59, 130, 246, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1) !important;
+  backdrop-filter: blur(20px) !important;
+}
+
+/* Alternative approach - target specific RainbowKit classes */
+div[data-rk] > div {
+  background: linear-gradient(145deg, #1f2937 0%, #111827 100%) !important;
+  border: 1px solid #374151 !important;
+  border-radius: 16px !important;
+  box-shadow: 
+    0 25px 50px -12px rgba(0, 0, 0, 0.7),
+    0 0 0 1px rgba(59, 130, 246, 0.1) !important;
+}
+
+/* Wallet option styling */
+[data-rk] [data-rk-wallet-option] {
+  background: linear-gradient(135deg, #374151 0%, #4b5563 100%);
+  border: 1px solid #6b7280;
+  color: #ffffff;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+[data-rk] [data-rk-wallet-option]:hover {
+  background: linear-gradient(135deg, #4b5563 0%, #6b7280 100%);
+  border-color: #6b7280;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.4);
+}
+
+/* Account button styling */
+[data-rk] [data-rk-account-button] {
+  background: linear-gradient(135deg, #1f2937 0%, #374151 100%);
+  border: 1px solid #4b5563;
+  color: #ffffff;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  transition: all 0.2s ease;
+}
+
+[data-rk] [data-rk-account-button]:hover {
+  background: linear-gradient(135deg, #374151 0%, #4b5563 100%);
+  border-color: #9ca3af;
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+  transform: translateY(-1px);
+}
+
+/* Add glow effect to modal content */
+[data-rk] [data-rk-modal-content]::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  border-radius: 16px;
+  background: linear-gradient(45deg, transparent, rgba(59, 130, 246, 0.1), transparent);
+  pointer-events: none;
+  z-index: -1;
+}
+
+/* Modal header and text styling */
+[data-rk] [data-rk-modal-content] h1,
+[data-rk] [data-rk-modal-content] h2,
+[data-rk] [data-rk-modal-content] h3 {
+  color: #ffffff !important;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+}
+
+[data-rk] [data-rk-modal-content] p,
+[data-rk] [data-rk-modal-content] span {
+  color: #d1d5db !important;
+}
+
+/* Chain selector styling */
+[data-rk] [data-rk-chain-selector] {
+  background: linear-gradient(135deg, #374151 0%, #4b5563 100%);
+  border: 1px solid #6b7280;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+[data-rk] [data-rk-chain-selector]:hover {
+  border-color: #6b7280;
+  box-shadow: 0 4px 8px rgba(59, 130, 246, 0.2);
+}
+
+/* Add subtle animation to modal appearance */
+@keyframes modalSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-20px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+[data-rk] [data-rk-modal-content] {
+  animation: modalSlideIn 0.3s ease-out;
+}

@@ -1,0 +1,192 @@
+/* RainbowKit Dark Theme Overrides */
+/* This file should be imported after RainbowKit styles */
+
+/* Target RainbowKit modal containers with subtle styling */
+[data-rk] [role="dialog"],
+[data-rk] div[role="dialog"],
+div[data-rk] [role="dialog"],
+div[data-rk] > div[role="dialog"],
+[data-rk] .rk-modal,
+[data-rk] [class*="modal"],
+[data-rk] [class*="Modal"],
+[data-rk] [class*="dialog"],
+[data-rk] [class*="Dialog"] {
+  background: linear-gradient(145deg, #1f2937 0%, #111827 100%) !important;
+  border: 1px solid #374151 !important;
+  border-radius: 12px !important;
+  box-shadow: 
+    0 25px 50px -12px rgba(0, 0, 0, 0.7),
+    inset 0 1px 0 rgba(255, 255, 255, 0.05) !important;
+  backdrop-filter: blur(20px) !important;
+}
+
+/* Target the actual modal content container */
+[data-rk] > div > div {
+  background: linear-gradient(145deg, #1f2937 0%, #111827 100%) !important;
+  border: 1px solid #374151 !important;
+  border-radius: 12px !important;
+  box-shadow: 
+    0 25px 50px -12px rgba(0, 0, 0, 0.7) !important;
+}
+
+/* Override modal backdrop */
+[data-rk] [role="dialog"] + div {
+  background: rgba(0, 0, 0, 0.9) !important;
+  backdrop-filter: blur(12px) !important;
+}
+
+/* Connect button styling */
+[data-rk] button {
+  background: linear-gradient(135deg, #1f2937 0%, #374151 100%) !important;
+  border: none !important;
+  color: #ffffff !important;
+  font-weight: 500 !important;
+  transition: all 0.2s ease !important;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3) !important;
+  border-radius: 8px !important;
+}
+
+[data-rk] button:hover {
+  background: linear-gradient(135deg, #374151 0%, #4b5563 100%) !important;
+  transform: translateY(-1px) !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3) !important;
+}
+
+/* Wallet options */
+[data-rk] [role="button"] {
+  background: linear-gradient(135deg, #374151 0%, #4b5563 100%) !important;
+  border: none !important;
+  color: #ffffff !important;
+  transition: all 0.3s ease !important;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3) !important;
+  border-radius: 8px !important;
+}
+
+[data-rk] [role="button"]:hover {
+  background: linear-gradient(135deg, #4b5563 0%, #6b7280 100%) !important;
+  transform: translateY(-2px) !important;
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.4) !important;
+}
+
+/* Text styling */
+[data-rk] h1,
+[data-rk] h2,
+[data-rk] h3,
+[data-rk] h4,
+[data-rk] h5,
+[data-rk] h6 {
+  color: #ffffff !important;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5) !important;
+}
+
+[data-rk] p,
+[data-rk] span,
+[data-rk] div {
+  color: #d1d5db !important;
+}
+
+/* Chain selector */
+[data-rk] select {
+  background: linear-gradient(135deg, #374151 0%, #4b5563 100%) !important;
+  border: none !important;
+  border-radius: 8px !important;
+  color: #ffffff !important;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3) !important;
+}
+
+[data-rk] select:hover {
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2) !important;
+}
+
+/* Account button when connected */
+[data-rk] [data-testid="rk-account-button"] {
+  background: linear-gradient(135deg, #1f2937 0%, #374151 100%) !important;
+  border: none !important;
+  color: #ffffff !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3) !important;
+  border-radius: 8px !important;
+}
+
+[data-rk] [data-testid="rk-account-button"]:hover {
+  background: linear-gradient(135deg, #374151 0%, #4b5563 100%) !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3) !important;
+  transform: translateY(-1px) !important;
+}
+
+/* Target all possible account button containers and backgrounds */
+[data-rk] [data-testid="rk-account-button"] > div,
+[data-rk] [data-testid="rk-account-button"] div,
+[data-rk] button > div,
+[data-rk] button div {
+  background: transparent !important;
+  color: #ffffff !important;
+}
+
+/* Target wallet address display specifically */
+[data-rk] [data-testid="rk-account-button"] span,
+[data-rk] [data-testid="rk-account-button"] p,
+[data-rk] button span,
+[data-rk] button p {
+  background: transparent !important;
+  color: #ffffff !important;
+}
+
+/* Target any nested divs that might have dark backgrounds */
+[data-rk] [data-testid="rk-account-button"] *,
+[data-rk] button * {
+  background: transparent !important;
+}
+
+/* Target wallet address and account info specifically */
+[data-rk] [data-testid="rk-account-button"] [data-testid="rk-account-button__text"],
+[data-rk] [data-testid="rk-account-button"] [data-testid="rk-account-button__address"],
+[data-rk] [data-testid="rk-account-button"] [data-testid="rk-account-button__balance"],
+[data-rk] [data-testid="rk-account-button"] [data-testid="rk-account-button__chain"] {
+  background: transparent !important;
+  color: #ffffff !important;
+}
+
+/* Target any dropdown or menu that appears when clicking the account button */
+[data-rk] [data-testid="rk-account-button"] + div,
+[data-rk] [data-testid="rk-account-button"] ~ div,
+[data-rk] [role="menu"],
+[data-rk] [role="listbox"] {
+  background: linear-gradient(145deg, #1f2937 0%, #111827 100%) !important;
+  border: 1px solid #374151 !important;
+  border-radius: 8px !important;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5) !important;
+}
+
+/* Target menu items */
+[data-rk] [role="menuitem"],
+[data-rk] [role="option"] {
+  background: transparent !important;
+  color: #ffffff !important;
+  border-radius: 4px !important;
+}
+
+[data-rk] [role="menuitem"]:hover,
+[data-rk] [role="option"]:hover {
+  background: #374151 !important;
+  color: #ffffff !important;
+}
+
+/* Override any remaining dark backgrounds in RainbowKit */
+[data-rk] div[style*="background-color: rgb(0, 0, 0)"],
+[data-rk] div[style*="background-color: #000"],
+[data-rk] div[style*="background-color: black"],
+[data-rk] div[style*="background: rgb(0, 0, 0)"],
+[data-rk] div[style*="background: #000"],
+[data-rk] div[style*="background: black"] {
+  background: transparent !important;
+}
+
+/* Force all text elements to be white */
+[data-rk] * {
+  color: #ffffff !important;
+}
+
+/* But allow specific elements to override with their intended colors */
+[data-rk] [data-testid="rk-account-button"] {
+  color: #ffffff !important;
+}
