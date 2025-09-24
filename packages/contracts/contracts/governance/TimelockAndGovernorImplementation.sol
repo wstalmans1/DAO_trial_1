@@ -13,7 +13,7 @@ import {GovernorVotesQuorumFractionUpgradeable} from "@openzeppelin/contracts-up
 import {GovernorTimelockControlUpgradeable} from "@openzeppelin/contracts-upgradeable/governance/extensions/GovernorTimelockControlUpgradeable.sol";
 import {IVotes} from "@openzeppelin/contracts/governance/utils/IVotes.sol";
 
-contract TimelockControllerImpl is Initializable, UUPSUpgradeable, OwnableUpgradeable, TimelockControllerUpgradeable {
+contract TimelockControllerImplementation is Initializable, UUPSUpgradeable, OwnableUpgradeable, TimelockControllerUpgradeable {
     address public kernel;
 
     event KernelSet(address indexed kernel);
@@ -46,7 +46,7 @@ contract TimelockControllerImpl is Initializable, UUPSUpgradeable, OwnableUpgrad
     }
 }
 
-contract DAOGovernorImpl is
+contract DAOGovernorImplementation is
     Initializable,
     UUPSUpgradeable,
     OwnableUpgradeable,

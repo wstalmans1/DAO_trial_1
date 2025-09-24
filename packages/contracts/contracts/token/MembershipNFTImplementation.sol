@@ -9,7 +9,7 @@ import {IVotes} from "@openzeppelin/contracts/governance/utils/IVotes.sol";
 import {Checkpoints} from "@openzeppelin/contracts/utils/structs/Checkpoints.sol";
 
 /// @notice Soulbound ERC-721 membership badge that provides one vote per member without delegation.
-contract MembershipNFTUpgradeable is Initializable, UUPSUpgradeable, OwnableUpgradeable, ERC721Upgradeable, IVotes {
+contract MembershipNFTImplementation is Initializable, UUPSUpgradeable, OwnableUpgradeable, ERC721Upgradeable, IVotes {
     using Checkpoints for Checkpoints.Trace208;
 
     uint256 private _nextId;

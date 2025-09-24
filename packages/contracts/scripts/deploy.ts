@@ -31,25 +31,25 @@ async function main() {
 
   console.log(`Using deployer: ${deployer.account.address}`)
 
-  const timelockImpl = await viem.deployContract('TimelockControllerImpl', [], { account: deployer.account })
-  console.log(`✅ TimelockControllerImpl implementation deployed at ${timelockImpl.address}`)
-  await verify('TimelockControllerImpl implementation', timelockImpl.address)
+  const timelockImpl = await viem.deployContract('TimelockControllerImplementation', [], { account: deployer.account })
+  console.log(`✅ TimelockControllerImplementation deployed at ${timelockImpl.address}`)
+  await verify('TimelockControllerImplementation', timelockImpl.address)
 
-  const governorImpl = await viem.deployContract('DAOGovernorImpl', [], { account: deployer.account })
-  console.log(`✅ DAOGovernorImpl implementation deployed at ${governorImpl.address}`)
-  await verify('DAOGovernorImpl implementation', governorImpl.address)
+  const governorImpl = await viem.deployContract('DAOGovernorImplementation', [], { account: deployer.account })
+  console.log(`✅ DAOGovernorImplementation deployed at ${governorImpl.address}`)
+  await verify('DAOGovernorImplementation', governorImpl.address)
 
-  const membershipImpl = await viem.deployContract('MembershipNFTUpgradeable', [], { account: deployer.account })
-  console.log(`✅ MembershipNFTUpgradeable implementation deployed at ${membershipImpl.address}`)
-  await verify('MembershipNFTUpgradeable implementation', membershipImpl.address)
+  const membershipImpl = await viem.deployContract('MembershipNFTImplementation', [], { account: deployer.account })
+  console.log(`✅ MembershipNFTImplementation deployed at ${membershipImpl.address}`)
+  await verify('MembershipNFTImplementation', membershipImpl.address)
 
-  const treasuryImpl = await viem.deployContract('SimpleTreasuryUpgradeable', [], { account: deployer.account })
-  console.log(`✅ SimpleTreasuryUpgradeable implementation deployed at ${treasuryImpl.address}`)
-  await verify('SimpleTreasuryUpgradeable implementation', treasuryImpl.address)
+  const treasuryImpl = await viem.deployContract('SimpleTreasuryImplementation', [], { account: deployer.account })
+  console.log(`✅ SimpleTreasuryImplementation deployed at ${treasuryImpl.address}`)
+  await verify('SimpleTreasuryImplementation', treasuryImpl.address)
 
-  const kernelImpl = await viem.deployContract('KernelUpgradeable', [], { account: deployer.account })
-  console.log(`✅ KernelUpgradeable implementation deployed at ${kernelImpl.address}`)
-  await verify('KernelUpgradeable implementation', kernelImpl.address)
+  const kernelImpl = await viem.deployContract('KernelImplementation', [], { account: deployer.account })
+  console.log(`✅ KernelImplementation deployed at ${kernelImpl.address}`)
+  await verify('KernelImplementation', kernelImpl.address)
 
   const factory = await viem.deployContract(
     'DAOFactoryUUPS',
@@ -72,11 +72,11 @@ async function main() {
   ])
 
   console.log('\nDeployment summary:')
-  console.log(`  TimelockControllerImpl: ${timelockImpl.address}`)
-  console.log(`  DAOGovernorImpl      : ${governorImpl.address}`)
-  console.log(`  MembershipNFTImpl    : ${membershipImpl.address}`)
-  console.log(`  SimpleTreasuryImpl   : ${treasuryImpl.address}`)
-  console.log(`  KernelImpl           : ${kernelImpl.address}`)
+  console.log(`  TimelockControllerImplementation: ${timelockImpl.address}`)
+  console.log(`  DAOGovernorImplementation      : ${governorImpl.address}`)
+  console.log(`  MembershipNFTImplementation    : ${membershipImpl.address}`)
+  console.log(`  SimpleTreasuryImplementation   : ${treasuryImpl.address}`)
+  console.log(`  KernelImplementation           : ${kernelImpl.address}`)
   console.log(`  DAOFactoryUUPS       : ${factory.address}`)
 
   console.log('\nNext steps:')

@@ -12,11 +12,11 @@ async function deployFactoryFixture() {
   const { viem } = await hre.network.connect()
   const [deployer, member1, member2] = await viem.getWalletClients()
 
-  const timelockImpl = await viem.deployContract('TimelockControllerImpl')
-  const governorImpl = await viem.deployContract('DAOGovernorImpl')
-  const membershipImpl = await viem.deployContract('MembershipNFTUpgradeable')
-  const treasuryImpl = await viem.deployContract('SimpleTreasuryUpgradeable')
-  const kernelImpl = await viem.deployContract('KernelUpgradeable')
+  const timelockImpl = await viem.deployContract('TimelockControllerImplementation')
+  const governorImpl = await viem.deployContract('DAOGovernorImplementation')
+  const membershipImpl = await viem.deployContract('MembershipNFTImplementation')
+  const treasuryImpl = await viem.deployContract('SimpleTreasuryImplementation')
+  const kernelImpl = await viem.deployContract('KernelImplementation')
 
   const factory = await viem.deployContract('DAOFactoryUUPS', [
     timelockImpl.address,
@@ -55,14 +55,14 @@ describe('DAOFactoryUUPS', () => {
     const txHash = await factory.write.deployDao(request)
     await publicClient.waitForTransactionReceipt({ hash: txHash })
 
-    const kernel = await viem.getContractAt('KernelUpgradeable', kernelAddr)
+    const kernel = await viem.getContractAt('KernelImplementation', kernelAddr)
 
     assert.equal(await kernel.read.module([MODULE_TIMELOCK]), timelockAddr)
     assert.equal(await kernel.read.module([MODULE_GOVERNOR]), governorAddr)
     assert.equal(await kernel.read.module([MODULE_TOKEN]), nftAddr)
     assert.equal(await kernel.read.module([MODULE_TREASURY]), treasuryAddr)
 
-    const timelock = await viem.getContractAt('TimelockControllerImpl', timelockAddr)
+    const timelock = await viem.getContractAt('TimelockControllerImplementation', timelockAddr)
 
     const proposerRole = await timelock.read.PROPOSER_ROLE()
     const executorRole = await timelock.read.EXECUTOR_ROLE()
@@ -73,10 +73,10 @@ describe('DAOFactoryUUPS', () => {
     assert.ok(await timelock.read.hasRole([adminRole, timelockAddr]))
     assert.equal(await timelock.read.hasRole([adminRole, deployer.account.address]), false)
 
-    const treasury = await viem.getContractAt('SimpleTreasuryUpgradeable', treasuryAddr)
+    const treasury = await viem.getContractAt('SimpleTreasuryImplementation', treasuryAddr)
     assert.equal(await treasury.read.owner(), timelockAddr)
 
-    const membership = await viem.getContractAt('MembershipNFTUpgradeable', nftAddr)
+    const membership = await viem.getContractAt('MembershipNFTImplementation', nftAddr)
     const addedDeployer = initialMembers.includes(deployer.account.address)
     const expectedMembers = initialMembers.length + (addedDeployer ? 0 : 1)
     assert.equal(await membership.read.memberCount(), BigInt(expectedMembers))
@@ -97,7 +97,7 @@ describe('DAOFactoryUUPS', () => {
     const txHash = await factory.write.deployDao(request)
     await publicClient.waitForTransactionReceipt({ hash: txHash })
 
-    const membership = await viem.getContractAt('MembershipNFTUpgradeable', nftAddr)
+    const membership = await viem.getContractAt('MembershipNFTImplementation', nftAddr)
 
     const expectedMembers = initialMembers.includes(deployer.account.address)
       ? initialMembers.length

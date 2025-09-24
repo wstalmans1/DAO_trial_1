@@ -10,7 +10,7 @@ interface IUUPSUpgradeableMinimal {
 }
 
 /// @notice Central registry that tracks DAO module proxies and coordinates upgrades.
-contract KernelUpgradeable is Initializable, UUPSUpgradeable, OwnableUpgradeable {
+contract KernelImplementation is Initializable, UUPSUpgradeable, OwnableUpgradeable {
     bytes32 public constant MODULE_TIMELOCK = keccak256("MODULE_TIMELOCK");
     bytes32 public constant MODULE_GOVERNOR = keccak256("MODULE_GOVERNOR");
     bytes32 public constant MODULE_TOKEN = keccak256("MODULE_TOKEN");
