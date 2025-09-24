@@ -2,7 +2,7 @@ import { fileURLToPath } from 'node:url'
 import { dirname, resolve } from 'node:path'
 import { config as loadEnv } from 'dotenv'
 import type { HardhatUserConfig } from 'hardhat/config'
-import '@nomicfoundation/hardhat-toolbox-viem'
+import hardhatToolboxViem from '@nomicfoundation/hardhat-toolbox-viem'
 
 // ESM-safe __dirname
 const __filename = fileURLToPath(import.meta.url)
@@ -32,6 +32,7 @@ addHttp('arbitrum', process.env.ARBITRUM_RPC)
 addHttp('sepolia', process.env.SEPOLIA_RPC)
 
 const config: HardhatUserConfig = {
+  plugins: [hardhatToolboxViem],
   solidity: {
     version: '0.8.28',
     settings: {
@@ -45,7 +46,10 @@ const config: HardhatUserConfig = {
   paths: {
     root: resolve(__dirname),
     sources: resolve(__dirname, 'contracts'),
-    tests: resolve(__dirname, 'test'),
+    tests: {
+      nodejs: resolve(__dirname, 'test'),
+      solidity: resolve(__dirname, 'test/solidity')
+    },
     cache: resolve(__dirname, 'cache'),
     artifacts: resolve(__dirname, '../../apps/dao-dapp/src/contracts')
   }

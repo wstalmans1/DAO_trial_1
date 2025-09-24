@@ -50,20 +50,20 @@ contract DAOFactoryUUPS {
         address[] memory executors = new address[](0);
         bytes memory tlInit = abi.encodeCall(
             TimelockControllerImpl.initialize,
-            (minDelaySeconds, proposers, executors, msg.sender)
+            (minDelaySeconds, proposers, executors, address(this))
         );
         tl = address(new ERC1967Proxy(timelockImplementation, tlInit));
 
         address[] memory members = _initialMembersWithCaller(initialMembers);
-        bytes memory nftInit = abi.encodeCall(MembershipNFTUpgradeable.initialize, (msg.sender, members));
+        bytes memory nftInit = abi.encodeCall(MembershipNFTUpgradeable.initialize, (address(this), members));
         nft = address(new ERC1967Proxy(membershipImplementation, nftInit));
 
-        bytes memory treasuryInit = abi.encodeCall(SimpleTreasuryUpgradeable.initialize, (msg.sender));
+        bytes memory treasuryInit = abi.encodeCall(SimpleTreasuryUpgradeable.initialize, (address(this)));
         treasury = address(new ERC1967Proxy(treasuryImplementation, treasuryInit));
 
         bytes memory governorInit = abi.encodeCall(
             DAOGovernorImpl.initialize,
-            (msg.sender, MembershipNFTUpgradeable(nft), TimelockControllerImpl(payable(tl)))
+            (address(this), MembershipNFTUpgradeable(nft), TimelockControllerImpl(payable(tl)))
         );
         governor = address(new ERC1967Proxy(governorImplementation, governorInit));
 
