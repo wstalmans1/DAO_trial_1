@@ -3,60 +3,73 @@ import hre from 'hardhat'
 async function main() {
   const { viem } = await hre.network.connect()
   const [deployer] = await viem.getWalletClients()
-  const publicClient = await viem.getPublicClient()
+  const networkName = hre.network.name
+  const shouldVerify = process.env.VERIFY === 'true' && networkName !== 'hardhat'
+
+  const verify = async (label: string, address: string, constructorArguments: unknown[] = []) => {
+    if (!shouldVerify) return
+    console.log(`🔍 Verifying ${label}...`)
+    try {
+      if (typeof hre.run === 'function') {
+        await hre.run('verify:verify', {
+          address,
+          constructorArguments
+        })
+      } else {
+        throw new Error('Verification task unavailable in this environment')
+      }
+      console.log(`✅ Verified ${label}`)
+    } catch (error: any) {
+      const message = (error?.message ?? '').toLowerCase()
+      if (message.includes('already verified')) {
+        console.log(`ℹ️  ${label} already verified`)
+      } else {
+        console.warn(`⚠️  Verification skipped for ${label}:`, error?.message ?? error)
+      }
+    }
+  }
 
   console.log(`Using deployer: ${deployer.account.address}`)
 
-  const waitForDeployment = async <T extends { address: string; deploymentTransaction: { hash: `0x${string}` } }>(
-    label: string,
-    deployment: Promise<T>
-  ) => {
-    const contract = await deployment
-    console.log(`⏳ Deploying ${label}...`)
-    await publicClient.waitForTransactionReceipt({ hash: contract.deploymentTransaction.hash })
-    console.log(`✅ ${label} deployed at ${contract.address}`)
-    return contract
-  }
+  const timelockImpl = await viem.deployContract('TimelockControllerImpl', [], { account: deployer.account })
+  console.log(`✅ TimelockControllerImpl implementation deployed at ${timelockImpl.address}`)
+  await verify('TimelockControllerImpl implementation', timelockImpl.address)
 
-  const timelockImpl = await waitForDeployment(
-    'TimelockControllerImpl implementation',
-    viem.deployContract('TimelockControllerImpl', [], { account: deployer.account })
-  )
+  const governorImpl = await viem.deployContract('DAOGovernorImpl', [], { account: deployer.account })
+  console.log(`✅ DAOGovernorImpl implementation deployed at ${governorImpl.address}`)
+  await verify('DAOGovernorImpl implementation', governorImpl.address)
 
-  const governorImpl = await waitForDeployment(
-    'DAOGovernorImpl implementation',
-    viem.deployContract('DAOGovernorImpl', [], { account: deployer.account })
-  )
+  const membershipImpl = await viem.deployContract('MembershipNFTUpgradeable', [], { account: deployer.account })
+  console.log(`✅ MembershipNFTUpgradeable implementation deployed at ${membershipImpl.address}`)
+  await verify('MembershipNFTUpgradeable implementation', membershipImpl.address)
 
-  const membershipImpl = await waitForDeployment(
-    'MembershipNFTUpgradeable implementation',
-    viem.deployContract('MembershipNFTUpgradeable', [], { account: deployer.account })
-  )
+  const treasuryImpl = await viem.deployContract('SimpleTreasuryUpgradeable', [], { account: deployer.account })
+  console.log(`✅ SimpleTreasuryUpgradeable implementation deployed at ${treasuryImpl.address}`)
+  await verify('SimpleTreasuryUpgradeable implementation', treasuryImpl.address)
 
-  const treasuryImpl = await waitForDeployment(
-    'SimpleTreasuryUpgradeable implementation',
-    viem.deployContract('SimpleTreasuryUpgradeable', [], { account: deployer.account })
-  )
+  const kernelImpl = await viem.deployContract('KernelUpgradeable', [], { account: deployer.account })
+  console.log(`✅ KernelUpgradeable implementation deployed at ${kernelImpl.address}`)
+  await verify('KernelUpgradeable implementation', kernelImpl.address)
 
-  const kernelImpl = await waitForDeployment(
-    'KernelUpgradeable implementation',
-    viem.deployContract('KernelUpgradeable', [], { account: deployer.account })
-  )
-
-  const factory = await waitForDeployment(
+  const factory = await viem.deployContract(
     'DAOFactoryUUPS',
-    viem.deployContract(
-      'DAOFactoryUUPS',
-      [
-        timelockImpl.address,
-        governorImpl.address,
-        membershipImpl.address,
-        treasuryImpl.address,
-        kernelImpl.address
-      ],
-      { account: deployer.account }
-    )
+    [
+      timelockImpl.address,
+      governorImpl.address,
+      membershipImpl.address,
+      treasuryImpl.address,
+      kernelImpl.address
+    ],
+    { account: deployer.account }
   )
+  console.log(`✅ DAOFactoryUUPS deployed at ${factory.address}`)
+  await verify('DAOFactoryUUPS', factory.address, [
+    timelockImpl.address,
+    governorImpl.address,
+    membershipImpl.address,
+    treasuryImpl.address,
+    kernelImpl.address
+  ])
 
   console.log('\nDeployment summary:')
   console.log(`  TimelockControllerImpl: ${timelockImpl.address}`)

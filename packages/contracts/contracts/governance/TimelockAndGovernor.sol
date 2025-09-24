@@ -69,7 +69,8 @@ contract DAOGovernorImpl is
         __Ownable_init(admin);
         __UUPSUpgradeable_init();
         __Governor_init("DAOGovernor");
-        __GovernorSettings_init(1, 45_818, 0);
+        // 15-block voting window (~3 minutes on Sepolia/Hardhat)
+        __GovernorSettings_init(1, 15, 0);
         __GovernorCountingSimple_init();
         __GovernorVotes_init(votesAdapter);
         __GovernorVotesQuorumFraction_init(4);

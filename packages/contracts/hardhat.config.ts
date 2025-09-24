@@ -42,7 +42,21 @@ const config: HardhatUserConfig = {
   },
   defaultNetwork: 'hardhat',
   networks,
-  verify: { etherscan: { apiKey: process.env.ETHERSCAN_API_KEY || '' } },
+  verify: {
+    etherscan: {
+      apiKey: process.env.BLOCKSCOUT_API_KEY || 'blockscout',
+      customChains: [
+        {
+          network: 'sepolia',
+          chainId: 11155111,
+          urls: {
+            apiURL: 'https://eth-sepolia.blockscout.com/api',
+            browserURL: 'https://eth-sepolia.blockscout.com'
+          }
+        }
+      ]
+    }
+  },
   paths: {
     root: resolve(__dirname),
     sources: resolve(__dirname, 'contracts'),
